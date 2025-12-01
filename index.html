@@ -33,7 +33,7 @@
             --card-bg: #1e293b;
             --card-border: #334155;
             --input-bg: #334155;
-            --overlay-color: rgba(15, 23, 42, 0.8);
+            --overlay-color: rgba(15, 23, 42, 0.9);
             --shadow-color: rgba(0,0,0, 0.5);
         }
 
@@ -74,7 +74,7 @@
         .menu-icon span:nth-child(3) { top: 18px; }
         .nav-title { font-weight: 700; font-size: 1.1rem; color: var(--dora-blue); letter-spacing: 1px; }
 
-        /* 夜間開關 (純文字) */
+        /* 夜間開關 */
         .theme-switch {
             position: fixed; bottom: 20px; right: 20px;
             width: 50px; height: 50px; border-radius: 50%;
@@ -114,7 +114,7 @@
         .overlay-click.active { display: block; }
 
         /* 容器與元件 */
-        .container { max-width: 500px; margin: 0 auto; padding: 20px; display: none; animation: fadeIn 0.4s ease; }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; display: none; animation: fadeIn 0.4s ease; padding-bottom: 80px; }
         .container.active { display: block; }
         @keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
 
@@ -209,22 +209,37 @@
             height: 100%; background: var(--dora-green); width: 0%;
             transition: width 0.5s; background: #2ecc71;
         }
-        
-        .flower-select {
-            display: flex; gap: 5px; margin-top: 20px; justify-content: center; flex-wrap: wrap;
-        }
-        .flower-option {
-            padding: 8px 12px; border: 2px solid #ddd; border-radius: 20px;
-            cursor: pointer; font-size: 0.85rem; color: #aaa;
-        }
-        .flower-option.active {
-            border-color: var(--dora-blue); color: var(--dora-blue); font-weight: bold; background: var(--input-bg);
-        }
-        .flower-option.locked {
-            opacity: 0.5; cursor: not-allowed;
-        }
+        .flower-select { display: flex; gap: 5px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+        .flower-option { padding: 8px 12px; border: 2px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 0.85rem; color: #aaa; }
+        .flower-option.active { border-color: var(--dora-blue); color: var(--dora-blue); font-weight: bold; background: var(--input-bg); }
+        .flower-option.locked { opacity: 0.5; cursor: not-allowed; }
 
-        /* 紀錄列表 */
+        /* 彩蛋動畫 (Stop Motion Overlay) */
+        .egg-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 999; display: none;
+            justify-content: center; align-items: center;
+            flex-direction: column;
+        }
+        [data-theme="dark"] .egg-overlay { background: rgba(15, 23, 42, 0.98); }
+
+        .egg-content { text-align: center; }
+        .egg-img {
+            width: 300px; height: 300px;
+            object-fit: contain;
+            border-radius: 20px;
+            background: white;
+            border: 8px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .egg-text {
+            margin-top: 20px; font-size: 1.2rem; font-weight: bold; color: var(--dora-blue);
+            opacity: 0; animation: fadeIn 1s ease forwards; animation-delay: 0.5s;
+        }
+        @keyframes fadeIn { to {opacity: 1;} }
+
+        /* 紀錄與日記 */
         .history-list { list-style: none; padding: 0; }
         .history-item {
             background: var(--card-bg); margin-bottom: 15px; padding: 20px;
@@ -232,25 +247,36 @@
             box-shadow: 2px 2px 10px var(--shadow-color); position: relative; border: 1px solid var(--card-border);
         }
         .del-btn { position: absolute; top: 15px; right: 15px; width: 25px; height: 25px; border-radius: 50%; background: var(--input-bg); color: #999; border: none; }
-        .date-badge {
-            display: inline-block; background: var(--input-bg); padding: 3px 10px; 
-            border-radius: 5px; font-size: 0.8rem; margin-bottom: 8px; color: var(--text-color);
-        }
+        .date-badge { display: inline-block; background: var(--input-bg); padding: 3px 10px; border-radius: 5px; font-size: 0.8rem; margin-bottom: 8px; color: var(--text-color); }
         .data-row { display: flex; justify-content: space-between; margin-top: 5px; }
         .label { color: #888; font-size: 0.8rem; margin-right: 5px; }
-
-        /* 日記 */
         .diary-paper {
             background: var(--card-bg); background-image: radial-gradient(var(--card-border) 1px, transparent 1px);
             background-size: 20px 20px; padding: 25px; border-radius: 5px;
             box-shadow: 0 5px 10px var(--shadow-color); margin-bottom: 20px; border-top: 10px solid var(--dora-blue);
         }
-        .diary-img { width: 100%; border-radius: 8px; margin-top: 15px; }
+
+        /* 清除按鈕置底樣式 */
+        .clear-zone {
+            margin-top: 40px; padding-top: 20px; border-top: 1px dashed #ccc; text-align: center;
+        }
+        .clear-btn-bottom {
+            background: #eee; color: #888; font-size: 0.9rem; padding: 10px 30px;
+            border-radius: 50px; font-weight: normal;
+        }
+        .clear-btn-bottom:hover { background: #ffdede; color: #d63031; }
 
     </style>
 </head>
 <body>
     <div class="bg-overlay"></div>
+
+    <div id="eggOverlay" class="egg-overlay">
+        <div class="egg-content">
+            <img id="eggAnim" src="movie_1.png" class="egg-img">
+            <div class="egg-text">花朵長大了！</div>
+        </div>
+    </div>
 
     <div class="theme-switch" onclick="toggleTheme()">
         <span id="themeIcon">日</span>
@@ -305,10 +331,22 @@
 
         <div class="card">
             <h2>快速存入紀錄</h2>
-            <p class="small-desc">存檔後會自動幫你的花澆水喔！</p>
+            <p class="small-desc">補登昨天的紀錄也可以選日期喔！</p>
+            
+            <div style="margin-bottom:10px;">
+                <label class="label">日期</label>
+                <input type="date" id="recordDate">
+            </div>
+
             <div style="display:flex; gap:10px;">
-                <input type="time" id="t1" value="23:00">
-                <input type="time" id="t2" value="07:00">
+                <div style="flex:1">
+                    <label class="label">入睡</label>
+                    <input type="time" id="t1" value="23:00">
+                </div>
+                <div style="flex:1">
+                    <label class="label">起床</label>
+                    <input type="time" id="t2" value="07:00">
+                </div>
             </div>
             <button class="btn-blue" onclick="quickSave()">存檔並澆水</button>
         </div>
@@ -329,7 +367,6 @@
             <div class="garden-area" id="gardenArea">
                 <img src="img_watercan.png" class="water-can">
                 <div class="flower-pot">
-                    <!-- 預設顯示 -->
                     <img src="" id="currentFlowerImg" class="flower-img">
                 </div>
             </div>
@@ -351,51 +388,34 @@
             <input type="date" id="filterDate" onchange="renderHistory()" style="margin:0;">
         </div>
         <ul id="historyList" class="history-list"></ul>
-        <div style="text-align:center; margin-top:20px;">
-            <button onclick="clearAllRecs()" style="background:transparent; color:#999; border:1px solid #ddd; width:auto; padding:8px 20px; font-size:0.8rem; box-shadow:none;">清除所有紀錄</button>
+        
+        <div class="clear-zone">
+            <button class="clear-btn-bottom" onclick="clearAllRecs()">清除所有紀錄</button>
         </div>
     </div>
 
-    <!-- 頁面 4: 日記本 -->
+    <!-- 頁面 4: 日記本 (純文字版) -->
     <div id="diary" class="container">
         <div class="card">
             <h2>撰寫日記</h2>
             <input type="date" id="dDate">
-            <textarea id="dText" rows="5" placeholder="今天睡得好嗎？" style="background:var(--input-bg);"></textarea>
-            <label style="display:block; margin-top:15px; color:var(--dora-blue); cursor:pointer; text-align:center; border:2px dashed var(--dora-blue); padding:10px; border-radius:10px;">
-                上傳照片
-                <input type="file" id="dImg" accept="image/*" style="display:none;" onchange="previewFile()">
-            </label>
-            <img id="dPreview" style="width:100%; border-radius:10px; margin-top:10px; display:none;">
+            <textarea id="dText" rows="6" placeholder="今天發生了什麼事？寫下來吧..." style="background:var(--input-bg);"></textarea>
             <button class="btn-blue" onclick="saveDiary()">保存日記</button>
         </div>
         <div id="diaryList"></div>
     </div>
 
     <script>
-        // ==========================================
-        //  圖片設定區 (已依照你的檔名設定)
-        // ==========================================
         const FLOWER_CONFIG = {
-            1: { // 向日葵
-                stage1: 'flower_1_1.png', 
-                stage2: 'flower_1_2.png',
-                stage3: 'flower_1_3.png'
-            },
-            2: { // 紅玫瑰 (因為沒有幼苗圖，所以先借用向日葵的，長大才變玫瑰)
-                stage1: 'flower_1_1.png', // 借用幼苗
-                stage2: 'flower_1_2.png', // 借用成長中
-                stage3: 'flower_2_3.png'  // 紅玫瑰盛開圖
-            },
-            3: { // 粉玫瑰 (同上，先借用向日葵幼苗)
-                stage1: 'flower_1_1.png', // 借用幼苗
-                stage2: 'flower_1_2.png', // 借用成長中
-                stage3: 'flower_2_4.png'  // 粉玫瑰盛開圖
-            }
+            1: { stage1: 'flower_1_1.png', stage2: 'flower_1_2.png', stage3: 'flower_1_3.png' },
+            2: { stage1: 'flower_1_1.png', stage2: 'flower_1_2.png', stage3: 'flower_2_3.png' },
+            3: { stage1: 'flower_1_1.png', stage2: 'flower_1_2.png', stage3: 'flower_2_4.png' }
         };
 
         // --- 初始化 ---
+        document.getElementById('recordDate').valueAsDate = new Date(); // 預設今天
         document.getElementById('dDate').valueAsDate = new Date();
+
         if(localStorage.getItem('theme') === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
             document.getElementById('themeIcon').innerText = '夜';
@@ -407,7 +427,6 @@
 
         // --- 花園系統 ---
         function updateGardenUI() {
-            // 設定選單 (1:向日葵, 2:紅玫瑰, 3:粉玫瑰)
             for(let i=1; i<=3; i++) {
                 let el = document.getElementById('sel_'+i);
                 if(i <= gardenData.unlocked) {
@@ -418,18 +437,15 @@
                 }
             }
 
-            // 計算階段
             let stageKey = 'stage1';
             let label = "幼苗";
             let percent = 20;
 
             if (gardenData.exp >= 6) {
                 stageKey = 'stage3'; percent = 100; label = "盛開";
-                // 自動解鎖下一種花
-                if(gardenData.unlocked < 3 && gardenData.type === gardenData.unlocked) {
+                if(gardenData.type === gardenData.unlocked && gardenData.unlocked < 3) {
                     gardenData.unlocked += 1;
                     localStorage.setItem('doraGarden', JSON.stringify(gardenData));
-                    setTimeout(() => { alert("恭喜花開了！獲得新種子！"); updateGardenUI(); }, 500);
                 }
             } else if (gardenData.exp >= 3) {
                 stageKey = 'stage2'; percent = 60; label = "成長中";
@@ -437,7 +453,6 @@
                 stageKey = 'stage1'; percent = 20; label = "幼苗";
             }
 
-            // 讀取設定好的圖片
             let imgSrc = FLOWER_CONFIG[gardenData.type][stageKey];
             document.getElementById('currentFlowerImg').src = imgSrc;
             document.getElementById('growthText').innerText = `成長進度：${label} (累積 ${gardenData.exp} 筆紀錄)`;
@@ -447,6 +462,7 @@
         function triggerWatering() {
             gardenData.exp += 1;
             localStorage.setItem('doraGarden', JSON.stringify(gardenData));
+            
             goPage('garden', document.querySelectorAll('.nav-item')[1]);
             
             let area = document.getElementById('gardenArea');
@@ -454,7 +470,28 @@
             void area.offsetWidth; 
             area.classList.add('watering');
             
-            setTimeout(updateGardenUI, 1000);
+            // 延遲播放彩蛋動畫
+            setTimeout(() => { playEggAnimation(); }, 2000);
+            setTimeout(updateGardenUI, 2500);
+        }
+
+        // 修改後的彩蛋動畫：支援 12 張圖 (V16.0)
+        function playEggAnimation() {
+            const overlay = document.getElementById('eggOverlay');
+            const img = document.getElementById('eggAnim');
+            overlay.style.display = 'flex';
+            
+            let frame = 1;
+            // 速度加快一點 (150ms)，讓 12 張圖跑起來更順
+            let interval = setInterval(() => {
+                frame++;
+                if(frame > 12) { // 這裡改成 12
+                    clearInterval(interval);
+                    setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+                } else {
+                    img.src = `movie_${frame}.png`;
+                }
+            }, 150);
         }
 
         function changeFlower(type) {
@@ -462,22 +499,24 @@
             if(type !== gardenData.type) {
                 if(confirm("要換種這盆花嗎？(如果是沒種過的花，要從頭開始喔)")) {
                     gardenData.type = type;
-                    // 如果切換回舊的花，若已滿級則維持滿級，否則歸零(簡易邏輯)
-                    if(gardenData.exp < 6) gardenData.exp = 0;
-                    // 如果這種花已經解鎖了下一種，代表它應該要是盛開狀態
-                    if(type < gardenData.unlocked) gardenData.exp = 6;
-
+                    if(gardenData.exp < 6) gardenData.exp = 0; 
+                    if(type < gardenData.unlocked) gardenData.exp = 6; 
                     localStorage.setItem('doraGarden', JSON.stringify(gardenData));
                     updateGardenUI();
                 }
             }
         }
 
-        // --- 存檔 (整合澆水) ---
+        // --- 存檔 (選擇日期) ---
         function quickSave() {
-            let t1 = document.getElementById('t1').value; let t2 = document.getElementById('t2').value;
+            let dateVal = document.getElementById('recordDate').value;
+            let t1 = document.getElementById('t1').value; 
+            let t2 = document.getElementById('t2').value;
+
+            if(!dateVal) return alert("請選擇日期！");
+
             let recs = JSON.parse(localStorage.getItem('doraRecs')) || [];
-            recs.unshift({id:Date.now(), date:new Date().toISOString().split('T')[0], t1, t2});
+            recs.unshift({id:Date.now(), date:dateVal, t1, t2});
             localStorage.setItem('doraRecs', JSON.stringify(recs));
             triggerWatering();
         }
@@ -517,6 +556,8 @@
             let html = ""; for(let i=4; i<=6; i++) { let w = new Date(n.getTime() + i*90*60000); html += `<span class="time-tag">${fmt(w)}</span>`; }
             document.getElementById('resNow').innerHTML = `<div>${delay} 分鐘後入睡</div><div style="margin-top:5px; color:#666; font-size:0.9rem;">建議起床時間</div><div style="margin-top:10px;">${html}</div>`; document.getElementById('resNow').style.display = 'block';
         }
+
+        // --- 紀錄列表 ---
         function renderHistory() {
             let recs = JSON.parse(localStorage.getItem('doraRecs')) || [];
             let f = document.getElementById('filterDate').value;
@@ -525,23 +566,36 @@
             if(show.length === 0) { ul.innerHTML = "<div style='text-align:center; color:#999; padding:20px;'>這裡空空的，快去睡覺吧！</div>"; return;}
             show.forEach(r => { ul.innerHTML += `<li class="history-item"><span class="date-badge">${r.date}</span><button class="del-btn" onclick="delRec(${r.id})">×</button><div class="data-row"><div><span class="label">入睡</span> <b>${r.t1}</b></div><div><span class="label">起床</span> <b>${r.t2}</b></div></div></li>`; });
         }
-        function delRec(id) { let recs = JSON.parse(localStorage.getItem('doraRecs')) || []; recs = recs.filter(r => r.id !== id); localStorage.setItem('doraRecs', JSON.stringify(recs)); renderHistory(); }
-        function clearAllRecs() { if(confirm("確定要刪除全部紀錄嗎？")) { localStorage.removeItem('doraRecs'); renderHistory(); } }
-        let tmpImg = "";
-        function previewFile() { let file = document.getElementById('dImg').files[0]; if(file){ let r = new FileReader(); r.onload = e => { tmpImg = e.target.result; document.getElementById('dPreview').src = tmpImg; document.getElementById('dPreview').style.display = "block"; }; r.readAsDataURL(file); } }
+        function delRec(id) { 
+            let recs = JSON.parse(localStorage.getItem('doraRecs')) || []; 
+            recs = recs.filter(r => r.id !== id); 
+            localStorage.setItem('doraRecs', JSON.stringify(recs)); 
+            if(gardenData.exp > 0) { gardenData.exp -= 1; localStorage.setItem('doraGarden', JSON.stringify(gardenData)); updateGardenUI(); }
+            renderHistory(); 
+        }
+        function clearAllRecs() { 
+            if(confirm("確定要撕掉所有紀錄嗎？(花朵也會重新開始種喔)")) { 
+                localStorage.removeItem('doraRecs'); 
+                gardenData.exp = 0; localStorage.setItem('doraGarden', JSON.stringify(gardenData)); updateGardenUI();
+                renderHistory(); 
+            } 
+        }
+
+        // --- 純文字日記 ---
         function saveDiary() {
             let d = document.getElementById('dDate').value; let t = document.getElementById('dText').value;
-            if(!t && !tmpImg) return alert("請寫點內容或上傳照片！");
+            if(!t) return alert("請寫點內容吧！");
             let diaries = JSON.parse(localStorage.getItem('doraDiary')) || [];
-            try { diaries.unshift({id:Date.now(), date:d, text:t, img:tmpImg}); localStorage.setItem('doraDiary', JSON.stringify(diaries)); document.getElementById('dText').value=""; document.getElementById('dPreview').style.display="none"; document.getElementById('dImg').value=""; tmpImg=""; renderDiary(); } catch(e) { alert("圖片太大了！"); }
+            diaries.unshift({id:Date.now(), date:d, text:t}); 
+            localStorage.setItem('doraDiary', JSON.stringify(diaries)); 
+            document.getElementById('dText').value=""; renderDiary();
         }
         function renderDiary() {
             let diaries = JSON.parse(localStorage.getItem('doraDiary')) || [];
             let div = document.getElementById('diaryList'); div.innerHTML = "";
             if(diaries.length === 0) { div.innerHTML = "<div style='text-align:center; color:#999; padding:20px;'>還沒有日記喔</div>"; return;}
             diaries.forEach(d => {
-                let imgHTML = d.img ? `<img src="${d.img}" class="diary-img">` : "";
-                div.innerHTML += `<div class="diary-paper"><div style="color:#aaa; font-size:0.8rem; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">${d.date}</div><div style="line-height:1.6; white-space: pre-wrap;">${d.text}</div>${imgHTML}<div style="text-align:right; margin-top:10px;"><span onclick="delDiary(${d.id})" style="color:#e73b2a; cursor:pointer; font-size:0.8rem; border:1px solid #e73b2a; padding:2px 8px; border-radius:4px;">刪除</span></div></div>`;
+                div.innerHTML += `<div class="diary-paper"><div style="color:#aaa; font-size:0.8rem; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">${d.date}</div><div style="line-height:1.6; white-space: pre-wrap;">${d.text}</div><div style="text-align:right; margin-top:10px;"><span onclick="delDiary(${d.id})" style="color:#e73b2a; cursor:pointer; font-size:0.8rem; border:1px solid #e73b2a; padding:2px 8px; border-radius:4px;">刪除</span></div></div>`;
             });
         }
         function delDiary(id) { let diaries = JSON.parse(localStorage.getItem('doraDiary')) || []; diaries = diaries.filter(d => d.id !== id); localStorage.setItem('doraDiary', JSON.stringify(diaries)); renderDiary(); }
