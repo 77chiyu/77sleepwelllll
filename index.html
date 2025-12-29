@@ -94,6 +94,7 @@
             background: var(--card-bg); z-index: 200; transition: 0.4s;
             box-shadow: 5px 0 20px rgba(0,0,0,0.2); padding-top: 30px;
             border-right: 6px solid var(--dora-yellow);
+            overflow-y: auto; /* 允許選單太長時捲動 */
         }
         .sidebar.active { left: 0; }
         .sidebar-header { text-align: center; margin-bottom: 30px; }
@@ -247,22 +248,14 @@
             box-shadow: 2px 2px 10px var(--shadow-color); position: relative; border: 1px solid var(--card-border);
         }
         
-        /* 刪除按鈕 (絕對置中修正版) */
+        /* 刪除按鈕 (絕對置中) */
         .del-btn { 
             position: absolute; top: 15px; right: 15px; 
-            width: 32px; height: 32px; /* 稍微加大 */
-            border-radius: 50%; 
-            background: #eee; /* 給一個明顯的背景色 */
-            color: #888; 
-            border: none; 
-            /* Flexbox 絕對置中 */
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            font-size: 1.2rem; 
-            cursor: pointer; 
-            padding: 0;
-            padding-bottom: 2px; /* 微調叉叉垂直位置 */
+            width: 32px; height: 32px; 
+            border-radius: 50%; background: #eee; 
+            color: #888; border: none; 
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; cursor: pointer; padding: 0; padding-bottom: 2px;
             line-height: 1;
         }
         .del-btn:hover { background: #ffcccc; color: red; }
@@ -270,8 +263,6 @@
         .date-badge { display: inline-block; background: var(--input-bg); padding: 3px 10px; border-radius: 5px; font-size: 0.8rem; margin-bottom: 8px; color: var(--text-color); }
         .data-row { display: flex; justify-content: space-between; margin-top: 5px; }
         .label { color: #888; font-size: 0.8rem; margin-right: 5px; }
-        
-        /* 睡眠時長顯示 (黃色標籤) */
         .duration-info {
             background: var(--dora-yellow); color: #5d4037;
             padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; font-weight: bold;
@@ -326,10 +317,16 @@
             <div class="avatar-crop"><img src="img_circle.jpg"></div>
             <h3 style="color:var(--text-color); margin:0;">百寶袋選單</h3>
         </div>
-        <a href="#" class="nav-item active-link" onclick="goPage('home', this)">睡眠道具屋</a>
-        <a href="#" class="nav-item" onclick="goPage('garden', this)">秘密花園</a>
-        <a href="#" class="nav-item" onclick="goPage('history', this)">夢境紀錄書</a>
-        <a href="#" class="nav-item" onclick="goPage('diary', this)">心情日記本</a>
+        <a class="nav-item active-link" id="nav-home" onclick="goPage('home')">睡眠道具屋</a>
+        <a class="nav-item" id="nav-garden" onclick="goPage('garden')">秘密花園</a>
+        <a class="nav-item" id="nav-history" onclick="goPage('history')">夢境紀錄書</a>
+        <a class="nav-item" id="nav-diary" onclick="goPage('diary')">心情日記本</a>
+        
+        <!-- NEW: 系統設定與備份 -->
+        <div style="border-top:1px dashed #ddd; margin:15px; padding-top:10px;">
+            <div style="color:#aaa; font-size:0.8rem; padding-left:15px; margin-bottom:5px;">道具設定</div>
+            <a class="nav-item" onclick="goPage('settings')">🛠️ 備份與分享</a>
+        </div>
     </div>
 
     <!-- 頁面 1: 首頁 -->
@@ -439,6 +436,30 @@
         <div id="diaryList"></div>
     </div>
 
+    <!-- 頁面 5: 系統設定 (備份與分享) -->
+    <div id="settings" class="container">
+        <div class="card">
+            <h2>🛠️ 記憶吐司 (備份與分享)</h2>
+            <p class="small-desc">想換手機或傳紀錄給朋友？請使用這裡的功能。</p>
+            
+            <div style="margin-bottom:20px; border-bottom:1px dashed #eee; padding-bottom:20px;">
+                <h3>📤 匯出 (製作記憶吐司)</h3>
+                <p class="small-desc">把現在的紀錄存成檔案，可以傳給朋友或自己備份。</p>
+                <button class="btn-yellow" onclick="exportData()">下載備份檔案</button>
+            </div>
+
+            <div>
+                <h3>📥 匯入 (吃下記憶吐司)</h3>
+                <p class="small-desc">讀取朋友傳來的檔案，或是還原之前的備份。<br><b style="color:var(--dora-pink);">警告：會覆蓋目前的紀錄喔！</b></p>
+                <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(this)">
+                <button class="btn-blue" onclick="document.getElementById('importFile').click()">選擇檔案匯入</button>
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:20px; font-size:0.8rem; color:#aaa;">
+            Doraemon Sleep Diary v21.0
+        </div>
+    </div>
+
     <script>
         const FLOWER_CONFIG = {
             1: { stage1: 'flower_1_1.png', stage2: 'flower_1_2.png', stage3: 'flower_1_3.png' },
@@ -446,6 +467,7 @@
             3: { stage1: 'flower_1_1.png', stage2: 'flower_1_2.png', stage3: 'flower_2_4.png' }
         };
 
+        // --- 初始化 ---
         document.getElementById('recordDate').valueAsDate = new Date();
         document.getElementById('dDate').valueAsDate = new Date();
 
@@ -455,135 +477,76 @@
         }
         
         let gardenData = JSON.parse(localStorage.getItem('doraGarden')) || { type: 1, exp: 0, unlocked: 1 };
+        
+        // 恢復上次瀏覽頁面
+        let lastPage = localStorage.getItem('doraLastPage') || 'home';
+        goPage(lastPage);
+
         updateGardenUI();
-        renderHistory(); renderDiary();
+        renderHistory(); 
+        renderDiary();
 
-        // --- 花園系統 ---
-        function updateGardenUI() {
-            for(let i=1; i<=3; i++) {
-                let el = document.getElementById('sel_'+i);
-                if(i <= gardenData.unlocked) {
-                    el.className = gardenData.type === i ? 'flower-option active' : 'flower-option';
-                    el.classList.remove('locked');
-                } else {
-                    el.className = 'flower-option locked';
-                }
-            }
-
-            let stageKey = 'stage1';
-            let label = "幼苗";
-            let percent = 20;
-
-            if (gardenData.exp >= 6) {
-                stageKey = 'stage3'; percent = 100; label = "盛開";
-                if(gardenData.type === gardenData.unlocked && gardenData.unlocked < 3) {
-                    gardenData.unlocked += 1;
-                    localStorage.setItem('doraGarden', JSON.stringify(gardenData));
-                }
-            } else if (gardenData.exp >= 3) {
-                stageKey = 'stage2'; percent = 60; label = "成長中";
-            } else {
-                stageKey = 'stage1'; percent = 20; label = "幼苗";
-            }
-
-            let imgSrc = FLOWER_CONFIG[gardenData.type][stageKey];
-            document.getElementById('currentFlowerImg').src = imgSrc;
-            document.getElementById('growthText').innerText = `成長進度：${label} (累積 ${gardenData.exp} 筆紀錄)`;
-            document.getElementById('growthBar').style.width = percent + "%";
+        // --- 備份與分享功能 (V21.0 New!) ---
+        function exportData() {
+            const data = {
+                doraRecs: localStorage.getItem('doraRecs'),
+                doraDiary: localStorage.getItem('doraDiary'),
+                doraGarden: localStorage.getItem('doraGarden'),
+                theme: localStorage.getItem('theme')
+            };
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "dora_backup.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            alert("記憶吐司製作完成！請將檔案傳送給想分享的人。");
         }
 
-        function triggerWatering() {
-            gardenData.exp += 1;
-            localStorage.setItem('doraGarden', JSON.stringify(gardenData));
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
             
-            goPage('garden', document.querySelectorAll('.nav-item')[1]);
-            
-            let area = document.getElementById('gardenArea');
-            area.classList.remove('watering');
-            void area.offsetWidth; 
-            area.classList.add('watering');
-            
-            if(gardenData.exp === 6) {
-                setTimeout(() => { playEggAnimation(); }, 2000);
-            }
-            setTimeout(updateGardenUI, 2500);
-        }
-
-        function playEggAnimation() {
-            const overlay = document.getElementById('eggOverlay');
-            const img = document.getElementById('eggAnim');
-            overlay.style.display = 'flex';
-            
-            let frame = 1;
-            let interval = setInterval(() => {
-                frame++;
-                if(frame > 12) {
-                    clearInterval(interval);
-                    setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-                } else {
-                    img.src = `movie_${frame}.png`;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.doraRecs) localStorage.setItem('doraRecs', data.doraRecs);
+                    if(data.doraDiary) localStorage.setItem('doraDiary', data.doraDiary);
+                    if(data.doraGarden) localStorage.setItem('doraGarden', data.doraGarden);
+                    if(data.theme) localStorage.setItem('theme', data.theme);
+                    
+                    alert("記憶吐司吃下去了！資料已還原。");
+                    location.reload(); // 重新整理以套用
+                } catch (err) {
+                    alert("這片記憶吐司壞掉了 (格式錯誤)！");
                 }
-            }, 150);
+            };
+            reader.readAsText(file);
         }
 
-        function changeFlower(type) {
-            if(type > gardenData.unlocked) return alert("請先種完上一種花！");
-            if(type !== gardenData.type) {
-                if(confirm("要換種這盆花嗎？(如果是沒種過的花，要從頭開始喔)")) {
-                    gardenData.type = type;
-                    if(gardenData.exp < 6) gardenData.exp = 0; 
-                    if(type < gardenData.unlocked) gardenData.exp = 6; 
-                    localStorage.setItem('doraGarden', JSON.stringify(gardenData));
-                    updateGardenUI();
-                }
-            }
-        }
-
-        // --- 存檔 ---
-        function quickSave() {
-            let dateVal = document.getElementById('recordDate').value;
-            let t1 = document.getElementById('t1').value; 
-            let t2 = document.getElementById('t2').value;
-            let dreamText = document.getElementById('quickDream').value;
-
-            if(!dateVal) return alert("請選擇日期！");
-
-            let recs = JSON.parse(localStorage.getItem('doraRecs')) || [];
-            recs.unshift({id:Date.now(), date:dateVal, t1, t2});
-            localStorage.setItem('doraRecs', JSON.stringify(recs));
-
-            if(dreamText.trim() !== "") {
-                let diaries = JSON.parse(localStorage.getItem('doraDiary')) || [];
-                diaries.unshift({id:Date.now() + 1, date:dateVal, text: "【夢境快記】\n" + dreamText}); 
-                localStorage.setItem('doraDiary', JSON.stringify(diaries));
-                document.getElementById('quickDream').value = ""; 
-                renderDiary();
-            }
-
-            triggerWatering();
-        }
-
-        function toggleTheme() {
-            let current = document.documentElement.getAttribute('data-theme');
-            let icon = document.getElementById('themeIcon');
-            if (current === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('theme', 'light'); icon.innerText = '日';
-            } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark'); icon.innerText = '夜';
-            }
-        }
+        // --- 頁面切換 ---
         function toggleMenu() { document.querySelector('.sidebar').classList.toggle('active'); document.querySelector('.overlay-click').classList.toggle('active'); }
-        function goPage(pid, btn) {
+        
+        function goPage(pid) {
+            localStorage.setItem('doraLastPage', pid);
             document.querySelectorAll('.container').forEach(e => e.classList.remove('active'));
             document.getElementById(pid).classList.add('active');
+            
             document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active-link'));
-            btn.classList.add('active-link');
-            let titles = {'home':'睡眠道具屋', 'garden':'秘密花園', 'history':'夢境紀錄書', 'diary':'心情日記本'};
+            let targetNav = document.getElementById('nav-' + pid);
+            if(targetNav) targetNav.classList.add('active-link');
+            
+            let titles = {'home':'睡眠道具屋', 'garden':'秘密花園', 'history':'夢境紀錄書', 'diary':'心情日記本', 'settings':'系統設定'};
             document.getElementById('navTitle').innerText = titles[pid];
-            toggleMenu();
+            
+            if(pid === 'history') renderHistory();
+            if(document.querySelector('.sidebar').classList.contains('active')) toggleMenu();
         }
+
+        // --- 其餘邏輯 (維持不變) ---
         function fmt(d) { return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
         function calcSplit() {
             let s = document.getElementById('splitWake').value; if(!s) return;
@@ -597,8 +560,6 @@
             let html = ""; for(let i=4; i<=6; i++) { let w = new Date(n.getTime() + i*90*60000); html += `<span class="time-tag">${fmt(w)}</span>`; }
             document.getElementById('resNow').innerHTML = `<div>${delay} 分鐘後入睡</div><div style="margin-top:5px; color:#666; font-size:0.9rem;">建議起床時間</div><div style="margin-top:10px;">${html}</div>`; document.getElementById('resNow').style.display = 'block';
         }
-
-        // --- 計算時長 ---
         function getDuration(d, t1, t2) {
             let start = new Date(d + 'T' + t1);
             let end = new Date(d + 'T' + t2);
@@ -608,32 +569,105 @@
             let mins = Math.round((diff % 3600000) / 60000);
             return `共 ${hrs}小時 ${mins}分`;
         }
+        function updateGardenUI() {
+            for(let i=1; i<=3; i++) {
+                let el = document.getElementById('sel_'+i);
+                if(i <= gardenData.unlocked) {
+                    el.className = gardenData.type === i ? 'flower-option active' : 'flower-option';
+                    el.classList.remove('locked');
+                } else {
+                    el.className = 'flower-option locked';
+                }
+            }
+            let stageKey = 'stage1'; let label = "幼苗"; let percent = 20;
+            if (gardenData.exp >= 6) {
+                stageKey = 'stage3'; percent = 100; label = "盛開";
+                if(gardenData.type === gardenData.unlocked && gardenData.unlocked < 3) {
+                    gardenData.unlocked += 1;
+                    localStorage.setItem('doraGarden', JSON.stringify(gardenData));
+                }
+            } else if (gardenData.exp >= 3) { stageKey = 'stage2'; percent = 60; label = "成長中"; }
+            else { stageKey = 'stage1'; percent = 20; label = "幼苗"; }
 
-        // --- 紀錄列表 ---
+            let imgSrc = FLOWER_CONFIG[gardenData.type][stageKey];
+            document.getElementById('currentFlowerImg').src = imgSrc;
+            document.getElementById('growthText').innerText = `成長進度：${label} (累積 ${gardenData.exp} 筆紀錄)`;
+            document.getElementById('growthBar').style.width = percent + "%";
+        }
+        function triggerWatering() {
+            gardenData.exp += 1; localStorage.setItem('doraGarden', JSON.stringify(gardenData));
+            goPage('garden');
+            let area = document.getElementById('gardenArea');
+            area.classList.remove('watering');
+            void area.offsetWidth; 
+            area.classList.add('watering');
+            if(gardenData.exp === 6) { setTimeout(() => { playEggAnimation(); }, 2000); }
+            setTimeout(updateGardenUI, 2500);
+        }
+        function playEggAnimation() {
+            const overlay = document.getElementById('eggOverlay');
+            const img = document.getElementById('eggAnim');
+            overlay.style.display = 'flex';
+            let frame = 1;
+            let interval = setInterval(() => {
+                frame++;
+                if(frame > 12) { clearInterval(interval); setTimeout(() => { overlay.style.display = 'none'; }, 1000); }
+                else { img.src = `movie_${frame}.png`; }
+            }, 150);
+        }
+        function changeFlower(type) {
+            if(type > gardenData.unlocked) return alert("請先種完上一種花！");
+            if(type !== gardenData.type) {
+                if(confirm("要換種這盆花嗎？(如果是沒種過的花，要從頭開始喔)")) {
+                    gardenData.type = type;
+                    if(gardenData.exp < 6) gardenData.exp = 0; 
+                    if(type < gardenData.unlocked) gardenData.exp = 6; 
+                    localStorage.setItem('doraGarden', JSON.stringify(gardenData));
+                    updateGardenUI();
+                }
+            }
+        }
+        function quickSave() {
+            let dateVal = document.getElementById('recordDate').value;
+            let t1 = document.getElementById('t1').value; let t2 = document.getElementById('t2').value;
+            let dreamText = document.getElementById('quickDream').value;
+            if(!dateVal) return alert("請選擇日期！");
+            let recs = JSON.parse(localStorage.getItem('doraRecs')) || [];
+            recs.unshift({id:Date.now(), date:dateVal, t1, t2});
+            localStorage.setItem('doraRecs', JSON.stringify(recs));
+            if(dreamText.trim() !== "") {
+                let diaries = JSON.parse(localStorage.getItem('doraDiary')) || [];
+                diaries.unshift({id:Date.now() + 1, date:dateVal, text: "【夢境快記】\n" + dreamText}); 
+                localStorage.setItem('doraDiary', JSON.stringify(diaries));
+                document.getElementById('quickDream').value = ""; 
+            }
+            renderHistory(); renderDiary();
+            triggerWatering();
+        }
+        function toggleTheme() {
+            let current = document.documentElement.getAttribute('data-theme');
+            let icon = document.getElementById('themeIcon');
+            if (current === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light'); icon.innerText = '日';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark'); icon.innerText = '夜';
+            }
+        }
         function renderHistory() {
             let recs = JSON.parse(localStorage.getItem('doraRecs')) || [];
             let f = document.getElementById('filterDate').value;
             let ul = document.getElementById('historyList'); ul.innerHTML = "";
             let show = f ? recs.filter(r => r.date === f) : recs;
             if(show.length === 0) { ul.innerHTML = "<div style='text-align:center; color:#999; padding:20px;'>這裡空空的，快去睡覺吧！</div>"; return;}
-            
             show.forEach(r => { 
                 let dur = getDuration(r.date, r.t1, r.t2);
-                ul.innerHTML += `
-                <li class="history-item">
-                    <span class="date-badge">${r.date}</span>
-                    <button class="del-btn" onclick="delRec(${r.id})">×</button>
-                    <div class="data-row">
-                        <div><span class="label">入睡</span> <b>${r.t1}</b></div>
-                        <div><span class="label">起床</span> <b>${r.t2}</b></div>
-                    </div>
-                    <div class="duration-info">⏱️ ${dur}</div>
-                </li>`; 
+                ul.innerHTML += `<li class="history-item"><span class="date-badge">${r.date}</span><button class="del-btn" onclick="delRec(${r.id})">×</button><div class="data-row"><div><span class="label">入睡</span> <b>${r.t1}</b></div><div><span class="label">起床</span> <b>${r.t2}</b></div></div><div class="duration-info">⏱️ ${dur}</div></li>`; 
             });
         }
         function delRec(id) { 
             if(!confirm("確定要刪除這筆紀錄嗎？\n(花朵經驗值也會倒扣喔)")) return;
-
             let recs = JSON.parse(localStorage.getItem('doraRecs')) || []; 
             recs = recs.filter(r => r.id !== id); 
             localStorage.setItem('doraRecs', JSON.stringify(recs)); 
@@ -647,8 +681,6 @@
                 renderHistory(); 
             } 
         }
-
-        // --- 純文字日記 ---
         function saveDiary() {
             let d = document.getElementById('dDate').value; let t = document.getElementById('dText').value;
             if(!t) return alert("請寫點內容吧！");
